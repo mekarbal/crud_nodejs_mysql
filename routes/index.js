@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var mysql = require("mysql");
+
 var conn = mysql.createPool({
   host: "localhost",
   user: "root",
@@ -11,7 +12,7 @@ var conn = mysql.createPool({
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
-  res.render("./category/selectCategories", { title: "Express" });
+  res.render("index", { title: "Welcome to Our CRUD Appication" });
 });
 
 router.get("/test", function (req, res) {
@@ -21,7 +22,9 @@ router.get("/test", function (req, res) {
 //Get All Categories
 router.get("/select", (req, res) => {
   conn.query("SELECT * FROM category", (err, rs) => {
-    res.render("./category/selectCategories", { categories: rs });
+    err
+      ? res.send(err)
+      : res.render("./category/selectCategories", { categories: rs });
   });
 });
 
@@ -45,19 +48,21 @@ router.get("/delete", (req, res) => {
 });
 
 router.get("/edit", (req, res) => {
-  conn.query("SELECT * FROM category WHERE id = ?", req.query.id, (err, rs) => {
+  conn.query(`SELECT * FROM category WHERE id = ?`, req.query.id, (err, rs) => {
     res.render("./category/editCategort", { category: rs[0] });
   });
 });
 
 router.post("/edit", (req, res) => {
-  let param = [req.body, req.query.id];
-
-  // let sqlQuery = `UPDATE category SET name=${name} WHERE id=${id}`;
-  conn.query(`UPDATE category SET ? WHERE id=?`, param, (err, rs) => {
-    console.log(req.query.id);
-    err ? res.send(err) : res.redirect("/select");
-  });
+  let name = req.body.name;
+  let idp = req.query.id;
+  conn.query(
+    `UPDATE category SET name='${name}' WHERE id='${idp}'`,
+    (err, rs) => {
+      console.log(req.query.id);
+      err ? res.send(err) : res.redirect("/select");
+    }
+  );
 });
 
 module.exports = router;
