@@ -10,11 +10,6 @@ var conn = mysql.createPool({
   debug: false,
 });
 
-/* GET home page. */
-router.get("/", function (req, res, next) {
-  res.render("index", { title: "Welcome to Our CRUD Appication" });
-});
-
 router.get("/test", function (req, res) {
   conn != null ? res.send("connected") : res.send("connection fialed");
 });
@@ -22,14 +17,12 @@ router.get("/test", function (req, res) {
 //Get All Categories
 router.get("/select", (req, res) => {
   conn.query("SELECT * FROM category", (err, rs) => {
-    err
-      ? res.send(err)
-      : res.render("./category/selectCategories", { categories: rs });
+    err ? res.send(err) : res.render("./selectCategories", { categories: rs });
   });
 });
 
 router.get("/insertCat", (req, res) => {
-  res.render("./category/selectCategories");
+  res.render("./selectCategories");
 });
 
 router.post("/insertCat", (req, res) => {
@@ -48,8 +41,9 @@ router.get("/delete", (req, res) => {
 });
 
 router.get("/edit", (req, res) => {
-  conn.query(`SELECT * FROM category WHERE id = ?`, req.query.id, (err, rs) => {
-    res.render("./category/editCategort", { category: rs[0] });
+  let id = req.query.id;
+  conn.query(`SELECT * FROM category WHERE id = ${id}`, (err, rs) => {
+    res.render("./editCategort", { category: rs[0] });
   });
 });
 
@@ -64,5 +58,44 @@ router.post("/edit", (req, res) => {
     }
   );
 });
+// ----------------------------------------------Products Sections
 
+router.get("/", (req, res) => {
+  conn.query("SELECT * FROM product", (err, rs) => {
+    err ? res.send(err) : res.render("index", { products: rs });
+  });
+});
+router.post("/insertProduct", (req, res) => {
+  let name = req.body.product_name;
+  let price = req.body.product_price;
+  let category_id = req.body.category_id;
+  let sqlQuery = `INSERT INTO product(name,price,category_id) VALUES ('${name}','${price}','${category_id}')`;
+  conn.query(sqlQuery, (err, rs) => {
+    err ? res.send(err) : res.redirect("/");
+  });
+});
+
+router.get("/editProduct", (req, res) => {
+  conn.query(`SELECT * FROM product WHERE id = ?`, req.query.id, (err, rs) => {
+    res.render("./editProduct", { product: rs[0] });
+  });
+});
+router.post("/editProduct", (req, res) => {
+  let idpp = req.body.product_id;
+  let name = req.body.product_name;
+  let price = req.body.product_price;
+  let category_id = req.body.category_id;
+  conn.query(
+    `UPDATE product SET name='${name}',price='${price}',category_id='${category_id}' WHERE id=${idpp}`,
+    (err, rs) => {
+      console.log(req.query.id);
+      err ? res.send(err) : res.redirect("/");
+    }
+  );
+});
+router.get("/deletePr", (req, res) => {
+  conn.query("DELETE FROM product WHERE id =?", req.query.id, (err, rs) => {
+    res.redirect("/");
+  });
+});
 module.exports = router;
